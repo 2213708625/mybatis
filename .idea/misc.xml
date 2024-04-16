@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ExternalStorageConfigurationManager" enabled="true" />
+  <component name="FrameworkDetectionExcludesConfiguration">
+    <file type="web" url="file://$PROJECT_DIR$/test03-webapp" />
+    <file type="web" url="file://$PROJECT_DIR$/test04" />
+    <file type="web" url="file://$PROJECT_DIR$/test07-mywebapp" />
+  </component>
+  <component name="MavenProjectsManager">
+    <option name="originalFiles">
+      <list>
+        <option value="$PROJECT_DIR$/test01/pom.xml" />
+        <option value="$PROJECT_DIR$/test02/pom.xml" />
+        <option value="$PROJECT_DIR$/test03-webapp/pom.xml" />
+        <option value="$PROJECT_DIR$/test04-javassist/pom.xml" />
+        <option value="$PROJECT_DIR$/test05-peizhi/pom.xml" />
+        <option value="$PROJECT_DIR$/test06-param/pom.xml" />
+        <option value="$PROJECT_DIR$/test07-mywebapp/pom.xml" />
+        <option value="$PROJECT_DIR$/test08-dynamic-sql/pom.xml" />
+        <option value="$PROJECT_DIR$/test09-seniormapper/pom.xml" />
+        <option value="$PROJECT_DIR$/test10-generator/pom.xml" />
+        <option value="$PROJECT_DIR$/test11-pagehelper/pom.xml" />
+        <option value="$PROJECT_DIR$/mybatisfuxi/pom.xml" />
+        <option value="$PROJECT_DIR$/mybatisfuxi2/pom.xml" />
+        <option value="$PROJECT_DIR$/mybatisfuxi3/pom.xml" />
+      </list>
+    </option>
+    <option name="ignoredFiles">
+      <set>
+        <option value="$PROJECT_DIR$/mybatisfuxi3/pom.xml" />
+        <option value="$PROJECT_DIR$/test01/test02-crud/pom.xml" />
+        <option value="$PROJECT_DIR$/test01/untitled/pom.xml" />
+        <option value="$PROJECT_DIR$/test03/pom.xml" />
+      </set>
+    </option>
+  </component>
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_16" project-jdk-name="17" project-jdk-type="JavaSDK">
+    <output url="file://$PROJECT_DIR$/out" />
+  </component>
+</project>

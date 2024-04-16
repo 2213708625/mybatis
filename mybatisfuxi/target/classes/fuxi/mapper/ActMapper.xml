@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="fuxi.mapper.ActMapper">
+    <select id="selectallact" resultType="act" >
+        select * from t_act;
+    </select>
+    <select id="selectByid" resultType="act">
+        select * from t_act
+        <where>
+            <if test="id!=null and id!=''">id=#{id}</if>
+        </where>
+    </select>
+
+
+</mapper>

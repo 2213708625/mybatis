@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="param.mapper.studentMapper">
+    <!--List<student> selectByid(Long id);
+    List<student> selectByname(String name);
+    List<student> selectBybirth(Date date);
+    List<student> selectBysex(Character sex);-->
+    <select id="selectByid" resultType="student" parameterType="java.lang.Long">
+        select * from t_student where id=#{id}
+    </select>
+    <select id="selectByname" resultType="student">
+        select * from t_student where name=#{name}
+    </select>
+    <select id="selectBybirth" resultType="student">
+        select * from t_student where birth=#{birth}
+    </select>
+    <select id="selectBysex" resultType="student">
+        select * from t_student where sex=#{sex}
+    </select>
+    <insert id="insertBYMap">
+        insert into t_student values(null,#{name},#{age},#{height},#{birth},#{sex})
+    </insert>
+    <insert id="insertBYBean">
+        insert into t_student values(null,#{name},#{age},#{height},#{birth},#{sex})
+    </insert>
+    <select id="selectBYnameAndSex" resultType="student">
+        select * from t_student where name=#{name} and sex=#{sex}
+    </select>
+    <select id="selectuseMapper" resultType="Map">
+     select * from t_student
+    </select>
+    <select id="selectBYBigMap" resultType="map">
+        select * from t_student
+    </select>
+    <resultMap id="" type="">
+         <result property="" column=""/>
+    </resultMap>
+    <select id="selectBYresultMap" resultMap="">
+
+    </select>
+
+</mapper>

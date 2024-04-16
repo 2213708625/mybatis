@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="fuxi.mapper.StudentMapper">
+    <!--<resultMap id="studentstepMap" type="student">
+        <id property="sid" column="sid"/>
+        <result property="sname" column="sname"/>
+        <association property="clazz" select="fuxi.mapper.ClazzMapper.selectBycid" column="cid">
+            <id property="cid" column="cid"/>
+            <result property="cname" column="cname"/>
+        </association>
+    </resultMap>
+
+    <select id="selectBysid" resultMap="studentstepMap">
+        select sid,sname,cid from t_stu where sid=#{sid}
+    </select>-->
+    <select id="selectBycid" resultType="student">
+        select sid,sname from t_stu where cid=#{cid}
+    </select>
+
+</mapper>

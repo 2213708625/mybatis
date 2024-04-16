@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="mybatisfuxi2" />
+        <module name="test08-dynamic-sql" />
+        <module name="test02" />
+        <module name="test09-seniormapper" />
+        <module name="test10-generator" />
+        <module name="test03-webapp" />
+        <module name="test07-mywebapp" />
+        <module name="test04-javassist" />
+        <module name="test06-param" />
+        <module name="mybatisfuxi" />
+        <module name="test11-pagehelper" />
+        <module name="test05-peizhi" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="mybatiscompletemodule" target="17" />
+      <module name="mybatisfuxi3" target="1.8" />
+      <module name="mybatislikemodule" target="17" />
+      <module name="test02-CRUD" target="17" />
+      <module name="test02-crud" target="17" />
+      <module name="test03" target="17" />
+      <module name="test04" target="1.7" />
+      <module name="test12-annotation" target="17" />
+      <module name="untitled" target="17" />
+    </bytecodeTargetLevel>
+  </component>
+</project>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="fuxi.mapper.studentMapper">
+  <insert id="insertStudent" parameterType="student">
+        insert into t_stu values (#{sid},#{sname},#{cid})
+  </insert>
+  <delete id="deleteStudent" parameterType="Integer">
+      delete from t_stu where sid=#{sid}
+  </delete>
+  <update id="updateStudent" parameterType="student">
+      update t_stu set sname=#{sname},cid=#{cid} where sid=#{sid}
+  </update>
+  <resultMap id="studentmap" type="student">
+      <id property="sid" column="sid"/>
+      <result property="sname" column="sname"/>
+      <result property="cid" column="cid"/>
+  </resultMap>
+    <select id="select" resultMap="studentmap">
+        select sid,sname,cid from t_stu
+        <where>
+            <if test="sid!=null and sid!=''">sid=#{sid}</if>
+        </where>
+    </select>
+    <select id="selectReturnMap" resultType="map">
+        select sid,sname,cid from t_stu
+        <where>
+            <if test="sid!=null and sid!=''">sid=#{sid}</if>
+        </where>
+    </select>
+    <select id="selectBigMap" resultType="map">
+        select sid,sname,cid from t_stu
+        <where>
+            <if test="sid!=null and sid!=''">sid=#{sid}</if>
+        </where>
+    </select>
+    <resultMap id="studentmanymap" type="student">
+        <id property="sid" column="sid"/>
+        <result property="sname" column="sname"/>
+        <result property="cid" column="cid"/>
+        <association property="clazz" select="fuxi.mapper.clazzMapper.selectone" column="cid"/>
+    </resultMap>
+    <select id="selectMany" resultMap="studentmanymap">
+        select sid,sname,cid from t_stu
+        <where>
+            <if test="sid!=null and sid!=''">sid=#{sid}</if>
+        </where>
+    </select>
+    <select id="selectBycid" resultMap="studentmap">
+        select * from t_stu
+        <where>
+            <if test="cid!=null and cid!=''">cid=#{cid}</if>
+        </where>
+    </select>
+</mapper>

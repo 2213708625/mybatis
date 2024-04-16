@@ -1,0 +1,833 @@
+框架（framework）
+框架就是对通用代码的封装，提前写好了一堆接口和类，我们可以在做项目的时候直接引入这些接口和类，
+基于这些现有的接口和类进行开发，可以大大提高开发效率
+框架一般都以jar包的形式存在（jar包中有class文件以及各种配置文件等）
+ssm三大框架学习顺序：mybatis，spring，springmvc
+mybatis是一个持久层框架，本质上就是对jdbc的封装，我们可以通过mybatis进行数据库的CRUD
+ORM：对象关系映射
+O(Object)：jvm中的java对象
+R(Ralational)：关系型数据库
+M(Mapping)：映射//关系型数据库当中的数据，通过封装类来new对象，将数据封装到对象中的过程，也就是数据库中数据被映射到java对象中
+像这种封装数据库元素，属性私有化，对外提供setget方法等的类叫做pojo或者bean，domain
+mybatis框架就是一个ORM框架，mybatis可以将java对象和数据库表中的一条记录互相转换
+mybatis是一个半自动化的ORM，因为mybatis框架中sql语句是需要程序员自己编写的
+mybatisplus和hibernate是全自动化的ORM框架，使用他们的时候，不需要程序员手动编写sql语句，sql语句可以自动生成
+mybatis特点：
+1，避免jdbc代码手动设置参数以及获取结果集
+2，支持xml开发(大部分使用这个)，也支持注解开发
+3，将接口和java的pojo对象映射称数据库的记录
+4，体积小，好学，2个jar包，2个xml配置文件
+5，完全做到sql解耦合
+使用mybatis完成第一个java程序：
+1，使用maven新建模板
+2，引入mybatis依赖和mysql驱动依赖
+3，编写mybatis核心配置文件：mybatis-config.xml，主要用来配置连接数据库的信息等
+//文件名部署必须叫这个，只是大家都采用这个名字，文件存放位置也不是固定的，但一般情况下，放在类的根路径上，即maven的resources目录下就行
+mybatis-config.xml文件中应该是这样编写的，然后修改你数据库的driver，url，username，password
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <environments default="development">
+        <environment id="development">
+            <transactionManager type="JDBC"/>
+            <dataSource type="POOLED">
+                <property name="driver" value="com.mysql.cj.jdbc.Driver"/>
+                <property name="url" value="jdbc:mysql://localhost:3306/dinghaibin"/>
+                <property name="username" value="root"/>
+                <property name="password" value="123456"/>
+            </dataSource>
+        </environment>
+    </environments>
+    <mappers>
+        <mapper resource="org/mybatis/example/BlogMapper.xml"/>
+    </mappers>
+</configuration>
+4，xxxxMapper.xml文件编写sql语句，这个文件名也不是固定的，放的位置也不是固定的，现在先放到resources目录下
+Mapper.xml文件中应该是这样编写的：
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.mybatis.example.BlogMapper">
+  <select id="selectBlog" resultType="Blog">//修改标签，可以增删改查，id是你标签内编写sql语句的唯一标识，这个id就代表了这句sql语句
+    select * from Blog where id = #{id}
+  </select>
+</mapper>
+5，在mybatis-config.xml文件中的mapper标签中编写resource，把你前面写的xxxxMapper.xml文件的路径写入，自动从类的根路径下开始查找，
+因为resources目录就算从根路径开始的，所以<mapper resource="CarMapper.xml"/>
+6，编写mybatis程序（使用mybatis类库编写mybatis程序，连接数据库，做增删改查）
+在mybatis中，负责执行sql语句的对象叫做sqlsession，
+sqlsession是专门用来执行sql语句的，是一个java程序和数据库之间的一次会话
+要想获取sqlsession对象，需要先获取sqlsessionfactory对象，通过sqlsessionfactory工厂来生产sqlsession对象
+获取sqlsessionfactory对象，需要先获取sqlsessionfactorybuilder对象，通过sqlsessionfactorybuilder对象来获取一个sqlsessionfactory对象
+mybatis的核心对象包括：sqlsessionfactorybuilder，sqlsessionfactory，sqlsession
+sqlsessionfactorybuilder-->sqlsessionfactory-->sqlsession
+代码如下：
+public class mybatiestest01 {
+    public static void main(String[] args) throws IOException {
+        //获取 SqlSessionFactoryBuilder对象
+        SqlSessionFactoryBuilder sqlSessionFactoryBuilder = new SqlSessionFactoryBuilder();
+        //获取 SqlSessionFactory对象
+        InputStream inputStream = Resources.getResourceAsStream("mybatis-config.xml");//默认就算从类的根路径开始查找，采用这种方式，移植性很强
+        SqlSessionFactory sqlSessionFactory = sqlSessionFactoryBuilder.build(inputStream);
+        //获取sqlsession对象
+        SqlSession sqlSession = sqlSessionFactory.openSession();
+        int count = sqlSession.insert("insertcar");//Mapper.xml文件中你sql语句的id，返回值就是影响数据库表当中的记录条数
+        System.out.println(count);
+        //mybatis的sqlsession对象不支持自动提交，所以需要手动提交
+        sqlSession.commit();
+    }
+}
+mybatis中有两个主要的配置文件：
+1，mybatis-config.xml，这是用来配置连接数据库的信息等
+2，xxxxMapper.xml,这个文件是专门用来编写sql语句的配置文件(一个表对应一个)
+t_user表对应的就是UserMapper.xml,t_student表对应的就是StudentMapper.xml
+一般情况下一个数据库对应一个sqlsessionfactory对象
+从xml中构建sqlsessionfactory
+mybatis中sql语句的结尾分号可以省略
+注意：凡是遇到resource这个单词，大部分情况下，这种加载资源的方式就是从类的根路径开始查找的
+获取inputstream流也可以通过ClassLoader.getSystemClassLoader().getResourceAsStream("mybatis-config.xml");//通过系统类加载器来获取文件流，Resources代码的底层就是这个代码
+在mybatis-config.xml文件中如果要从根路径获取Mapper配置，需要用到resource属性，即<mapper resource=""/>//最常用
+在mybatis-config.xml文件中如果要从绝对路径获取Mapper配置，要用到url属性，即<mapper url="file:///+绝对路径"/>//不常用，移植性差，如果你mapper配置文件不放在根路径，就用这个，但一般都把mapper配置文件放在resources文件夹中，这个相当于根路径
+移植性：指的是你的程序如果放到别的操作系统，可能别的操作系统没有d盘，e盘，用绝对路径可能会出问题，但采用文件夹的根路径，移植到别的系统，该文件夹还在，，移植性强，不会出问题
+mybatis当中的事务：
+在mybatis-config.xml文件中，可以通过以下的配置就行mybatis的事务管理
+<transactionManager type="JDBC"/>
+type的属性值包括两个：JDBC，MANAGED//不区分大小写
+在mybatis中提供了两种管理事务机制：
+1，JDBC事务管理器：mybatis框架自己管理事务，自己采用原生的jdbc代码去管理事务
+使用jdbc事务管理器的话，底层创建的是jdbctransaction对象
+我们也可以不用sqlsession.commit();//手动提交，但我们只需要在opensession方法里加上true，这样就相当于变为不开启事务，自动提交，不建议使用这种方式
+
+2，MANAGED事务管理器(以后用这个)：mybatis不在负责事务的管理，事务管理交给其他容器来负责，例如：spring
+使用这种方式，如果没有用spring框架的话，就是没有人管理事务，默认就是不开启事务，自动提交事务
+注意：只要你的autocommit是true，就表示没有开启事务，只有是false的时候，才是开启事务
+第一个完整的mybatis程序：
+//将sqlsesion对象先定义在外边，为了回滚事务和关闭资源
+        SqlSession sqlSession = null;
+        try {
+            SqlSessionFactoryBuilder sqlSessionFactoryBuilder = new SqlSessionFactoryBuilder();
+            SqlSessionFactory sqlSessionFactory = sqlSessionFactoryBuilder.build(Resources.getResourceAsStream("mybatis-config.xml"));
+            //开启sqlsession会话
+            sqlSession = sqlSessionFactory.openSession();
+            //执行insert语句
+            sqlSession.insert("insertall");
+            //提交事务
+            sqlSession.commit();
+        } catch (Exception e) {
+            //发生异常回滚事务
+            if (sqlSession != null) {
+                sqlSession.rollback();
+            }
+            e.printStackTrace();
+        }finally {
+            //关闭资源
+            if (sqlSession != null) {
+                sqlSession.close();
+            }
+        }
+使用junit进行单元测试，在test包下写测试文件，需要和被测试文件有相同的包，并且测试文件名字为“被测试文件+Test”
+单元测试方法一般一个业务方法对应一个测试方法，测试方法规范：public void testXXXX(){}
+假设测试的方法为sum，测试方法名为testSum
+在测试方法上边加入@Test注解，告诉系统这个方法是测试方法（*****）
+单元测试中有2个重要的概念：实际值(被测试的业务方法的真正执行结果)，期望值(执行了这个业务方法之后，你期望的结果)
+例如测试sum方法：
+@Test
+public void testSum(){
+   //获取被测试方法的类
+    math m = new math();
+   //实际值
+    int actual =m.sum(1,2);//应该为3 
+   //期望值
+    int expected = 3;
+    //加入断言进行测试
+   Assert.assertEquals(expected,actual);
+}
+mybatis集成日志组件：logimpl
+常见的集成日志组件：SLF4J，LOG4J,LOG4J2,STDOUT_LOGGING,
+其中STDOUT_LOGGING是标准日志，mybatis已经实现了这种标准日志，mybatis框架本省已经实现了这种标准
+在mybatis-config.xml文件中配置日志组件：
+<settings>
+      <setting name="logimple" value="STDOUT_LOGGING"/>
+</settings>	
+注意，settings标签在编写的时候要注意，它应该要出现在environment标签之前，注意顺序，我们可以参考dtd文件
+STDOUT_LOGGING是mybatis类库自带的，如果想使用其他类型的集成日志，需要引入其jar包      
+集成logback日志框架，logback日志框架实现了slf4j标准：
+1，引入logback的依赖
+2，引入logback所必须的xml配置文件：logback.xml//这个名字是必须的，必须放到根路径下
+
+一个sqlsessionfactory对象对应一个environment，一个environment通常是一个数据库
+使用mybatis进行crud：
+1，insert：
+不能使用上面的mapper文件那样编写，这样值就会写死到mapper文件中，实际开发这种是不存在的，一定是前端的form表单提交过来数据，然后将值传给sql语句
+在jdbc中占位符采用的是？，在mybatis中当中占位符是#{}
+#{}和jdbc当中的？是等效的//例如insert into t_car values(null,#{},#{},#{},#{},#{});
+我们研究sqlsession对象的insert方法，发现可以只传入sql语句的id，或者传入sql语句的id，加上一个封装数据的对象，这个对象中的数据就是要往占位符中传值的
+ 我们也可以使用map集合的对象往占位符内传值，那么#{}里就要写map集合对应的key
+例如：Map<String,Object> map = new HashMap<>();
+map.put("k1","1111");
+那么我们在mapper文件中就应该：insert into t_car values(null,#{k1});
+注意：#{这里写map集合的key，如果key不存在，获取的是null}
+一般map集合的key，起名的时候要见名知意
+通过bean类给sql语句的占位符传值
+bean类的属性应该和数据库的字段数量相同，且各个字段的属性应该是包装类，这样可以防止null的问题
+占位符#{这里写bean类的属性名}
+例如： 
+        sqlSession.insert("insertall",car);
+我们要在mapper文件中： insert into t_car values(null,#{carNum},#{brand},#{guidePrice},#{produceTime},#{carType});
+mybatis的mapper文件占位符底层是调用了get方法，也就是说这个#{}里填的是get方法的方法名去掉get，
+然后将剩下的单词首字母小写，然后放进去，例如：getUsername()-->#{username}
+
+2,delete
+同insert大致相同，将mapper文件中写入<delete id = ""></delete>
+同时在程序中调用sqlsession对象的delete方法，不需要new出bean对象，直接通过传值删除你要删除的那一条数据
+如果占位符只有一个，那么#{}里的可以随便写
+例如： mapper文件中：
+<delete id="deletebyid">
+        delete
+        from t_car
+        where id = #{id};
+    </delete>
+我们要在程序中：sqlSession.delete("deletebyid",6);
+
+3，update
+与insert和delete一致,一般是根据id修改
+mapper文件中：  update t_car set car_Num = #{carNum},brand = #{brand},guide_price = #{guidePrice},produce_Time = #{produceTime},car_Type=#{carType}  where id = #{id};
+程序： Car car = new Car(4L,"4004","丁海斌",20.00,"2020-11-02","真英雄");
+         sqlsession.update("updatebyid",car);//将id为4的数据修改
+
+4，select
+根据主键查一个：根据id查询
+在jdbc中，查询语句会有一个resultset，所以在mapper文件的select标签中，也有一个resultType，你需要传入你的bean类的类型，
+告诉mybatis，你的查询结果集是这个类型的，这个bean类需要传入全限定类名(带包的名)
+即：<select id="selectone" resultType="bean.Car">//注意：这里resultType要带包名
+        select * from t_car where id = #{id};
+    </select>
+程序应该： Object car = sqlSession.selectOne("selectone", 5);//输入id查询查询结果集
+         System.out.println(car);//输出查询结果集
+输出结果：Car{id=5, carNum='null', brand='丰田霸道', guidePrice=null, produceTime='null', carType='null'}
+carNum以及其他几个属性没有赋上值的原因是因为数据库中列名为car_Num，car类中的属性与数据库的字段名对不上
+这个问题解决的方法：使用as关键字取起别名，所以我们可以将语句改为：
+select id,car_Num as carNum,brand,guide_price as guideprice,produce_Time as produceTime,car_Type as carType from t_car where id=#{id};	
+修改完成，输出：Car{id=5, carNum='1003', brand='丰田霸道', guidePrice=30.3, produceTime='2020-11-12', carType='燃油车'}
+使用select查询所有：
+由于查询所有需要用到list集合
+<select id="selectall" resultType="bean.Car">//注意：这里resultType要带包名,虽然要使用list集合，但是应该写list集合中元素的类型
+       select id,car_Num as carNum,brand,guide_price as guideprice,produce_Time as produceTime,car_Type as carType from t_car;
+</select>
+程序则需要：List<Object> selectall = sqlsession.selectList("selectall");
+       selectall.forEach(car -> System.out.println(car));//调用了lambda来调用foreach
+当然我们也可以直接这样遍历：
+for (Car car: selectall) {
+            System.out.println(car);
+        }
+
+关于mapper文件中的namespace标签，namespace标签是每个区分mapper文件的标识
+假设2个mapper都有一个select语句，他们的id都相同，将他们2个同时配置到mybatis-config.xml文件中，写入程序时，输入id则需要namespace.id，不然系统无法区分
+例如:List<Object> cars = sqlsession.selectList("aaaa.selectall");//namespace为aaaa的mapper文件中id为selectall的select语句
+mapper文件中的namespace是用来指定命名空间的，为了防止id的重复
+
+mybatis-config.xml核心配置文件：
+在<environments>标签中有一个default属性，它可以指定默认的环境id，也就<environment id="">标签内的属性id
+也就是当你使用mybatis创建sqlsessionfactory对象的时候，没有指定环境的话，默认使用default对应的那个id的环境
+<environments default="mybatisDB">
+  <environment id = "mybatisDB">//默认使用这个数据库创建sqlsessionfactory对象
+  <environment id = "ppDB">
+一个<environment>对应一个数据库,一般一个数据库会对应一个sqlsessionfactory对象
+SqlsessionFcatoryBuilder的build方法中，可以第一个参数传流，第二个参数传入环境id，指定要使用那个环境来创建sqlsessionfactory对象
+SqlSessionFactory sqlsessionfactory = sqlsessionfactorybuilder.build(Resources.getResourceAsStream("mybatis-config.xml"));//这个是采用默认的环境来创建sqlsessionfactory对象
+SqlSessionFactory sqlsessionfactory = sqlsessionfactorybuilder.build(Resources.getResourceAsStream("mybatis-config.xml","ppDB"));//在第二个参数上写入环境id，指定环境来创建sqlsessionfactory对象
+environmen标签里的标签
+关于environment标签里的<transactionManager>标签：配置事务管理器，指定mybatis具体使用什么方式去管理事务
+transactionManager标签内有一个type属性，该属性有2个值(不区分大小写)：
+1，JDBC：使用原生的jdbc代码来管理使用
+2，MANAGED：mybatis不再负责事务的管理，将事务管理交给其他的Java EE容器来管理，例如：spring
+再mybatis中提供了一个事务管理器接口：transaction
+该接口下有两个实现类：JdbcTransaction，ManagedTransaction
+如果type="jdbc"，那么底层会实例化JdbcTransaction对象
+如果type="managed"，那么底层会实例化ManagedTransaction对象
+datasource标签配置：
+1，dataSource被称为数据源
+2，作用：为程序提供Connection对象
+3，数据源实际上是一套规范，jdk中实际上有这套规范：javax.sql.DataSource
+4，我们自己也可以编写数据源组件，只要实现javax.sql.DataSource接口就行了，实现接口中所有的方法，这样就有了自己的数据源 
+比如你可以写一个属于自己的数据库连接池(数据库连接池是提供连接对象的所以数据库来连接池就是一个数据源)
+5，常见的数据源组件(常见的数据库连接池)：druid，c3p0，dbcp
+6，<dataSource type="指定数据源的类型其实就是指定使用那个数据库连接池">
+type属性有3个值可以选：
+1，UNPOOLED：不使用数据库连接池技术，每一次请求过来之后，都是创建新的Connection对象
+2，POOLED：使用mybatis自己实现的数据库连接池
+3，JNDI：集成其他第三方的数据库连接池
+JNDI实际上是一套规范，大部分的web容器都实现了JNDI规范，例如：tomcat，jetty，weblogic，websphere，这些服务器(容器)都实现了JNDI规范
+JNDI是java命名目录接口，tomcat服务器实现了这个规范，要使用这个需要将连接池配到tomcat上，然后将initial_context和data_source配置到property标签里
+连接池优点：
+1，每一次获取连接都从池中拿，效率高
+2，因为每一次只能从池中拿，所以连接对象的创建数量是可控的
+正常使用连接池的话，池中很多参数是需要设置的，设置号参数，可以让连接池发挥的更好
+具体连接池的参数如何配置，需要反复的根据当前业务情况进行测试。
+当你将type="POOLED"时，表示启用mybatis自己的连接池，你可以再property标签里比UNPOOLED多写入几个property
+例如：1，<property name ="poolMaximumActiveConnections" value ="10"/>//最多有10个连接对象可以被使用
+//poolMaximumActiveConnections:连接池当中最多的正在使用的连接对象的数量上限，最多能有多少个连接可以活动
+2，<property name = "poolTimeToWait" value = "2000"/>//每个2秒打印日志，并且尝试获取连接对象
+3，<property name ="poolMaximumCheckoutTime" value = "10000"/>//强行让某个连接空闲，超时事件的设置，这里设置为10秒
+4，<property name = "poolMaximumIdleConnections" value = "5"/>//设置最多的空闲数量为5
+
+ <propeties>标签是再<configuration>标签下的标签，与<environments>同级
+在properties标签中可以配置很多属性，例如数据库的driver，url，username，password，这个与environment标签内的不同，这个是全局变量
+<properties>
+    <property name = "jdbc.driver" value = "com.mysql.cj.jdbc.Driver"/>
+    <property name = "jdbc.url" value = "jdbc:mysql://localhost:3306/dinghaibin"/>
+    <property name = "jdbc.username" value = "root">
+    <property name = "jdbc.password" value ="123456">
+</properties>
+上述就是全局变量的设置，如果我们想使用全局变量，可以使用el表达式一样获取value的方法，使用${key}来获取
+例如在environment标签内配置数据库信息，我们可以<property name = "username" value = "${jdbc.username}">
+注意：我们可以在propties标签内定义多个属性全局变量，在environment中配置的时候就用${}来获取value，这样就算我们环境要变，就只用改properties标签内的<property>定义的全局变量了
+(*****)我们可以在resources目录(类的根路径)下编写一个jdbc.properties文件，然后在<properties resource = "jdbc.properties"/>，将其配置到我们的xml文件中
+，这个方式和上面是一样的，不过将数据库的配置信息是写到了另一个文件中，更方便修改(常用)
+
+<properties url="file:///d:/jdbc:properties"/>//从绝对路径开始加载配置文件,不常用
+
+运用threadlocal来防止sqlsession在各个环节不一样的问题，调整sqlsessionutil工具类：
+ private static ThreadLocal<SqlSession> local = new ThreadLocal<>();
+    public static SqlSession opensession(){
+        SqlSession sqlsession = local.get();
+        if(sqlsession==null){
+            sqlsession = sqlsessionfactory.opensession();
+           //将sqlsession对象绑定到当前线程上
+            local.set(sqlsession);
+        }
+        return sqlsession;
+    }
+//从当前线程中移除sqlsession对象
+    public static void close(SqlSession sqlsession){
+        if(sqlsession!=null){
+            sqlsession.close();
+         //移除sqlsession对象和当前线程的绑定关系，因为tomcat支持线程池，也就是说，用过的线程对象，可能下一次还会使用这个线程对象
+            local.remove();
+        }
+    }
+把sqlsession对象放到Threadlocal当中的原因：为了保证一个线程对应一个sqlsession
+mybatis三大对象作用域：
+1，sqlsessionfactorybuilder
+这个类可以被实例化，使用和丢弃，一旦创建了sqlsessionfactory，就不再需要它了，因此sqlsessionfactorybuilder实例的最佳作用是方法作用域(局部方法变量)
+2，sqlsessionfactory
+sqlsessionfactory一旦被创建就应该在应用的运行期间一直存在，没有任何理由丢弃它或重新创建另一个实例，使用sqlsessionfactory的最佳实践是在应用运行期间不要重复创建多次(可以定义为全局变量，在静态代码块进行创建)
+多次创建sqlsessionfactory被视为一种代码坏习惯，因此sqlsessionfactory的最佳作用域是应用作用域，有很多方法可以做到，最简单的就是使用单例模式或者静态单例模式
+3，sqlsession
+每个线程都应该有它自己的sqlsession实例，sqlsession的实例不是线程安全的，因此不能被共享，所以它的最佳作用域是请求域或方法作用域，绝对不能将sqlsession实例的引用放在一个类的静态域，
+甚至一个类的实例变量也不行，也绝不能将sqlsession实例的引用放在任何类型的托管作用域中，比如servlet中的Httpsession，如果你现在正在使用一种web框架，考虑将sqlsession防在一个和http请求相似的作用域中，
+换句话说，每次收到http请求，就可以打开一个sqlsession，返回一个响应后就关闭它，这个关闭操作很重要，为了确保每次都能执行关闭操作，你应该把这个关闭操作放到finally块中，
+
+使用javassist生成类：mybatis内部自带javassist
+要想使用mybatis的动态生成dao接口的实现类的话，需要：
+1，将mapper文件写为你dao接口的全限定类名
+2，将特定的sql标签的id和你接口中特定的方法名要一致
+在mybatis当中，mybatis提供了一个机制，可以为我们动态的生成dao接口的实现类(代理类：dao接口的代理)
+mybatis当中实际上采用了代理模式，在内存中生成dao接口的代理类，然后创建代理的实例
+使用这种代理机制的前提：sqlMapper.xml文件中namespace必须是dao接口的全限定名称，id必须是dao接口中的方法名
+调用sqlsession对象的getMapper方法，传入dao类的class文件，可以动态生成到接口的代理类(实现类)
+例如：private accountDao accountdao = sqlsessionutil.opensession().getMapper(accountDao.class);
+Carmapper mapper  = sqlsessionutil.opensession().getMapper(Carmapper.class);//这个mapper实际上就是Carmapper直接接口的实现类对象，底层不但为Carmapper接口生成了字节码，并且还new对象了
+也就是说，以后我们只需要写dao接口，其实现类可以不用写，调用上面的代码将接口class文件传入即可，
+但是要注意：你的mapper.xml文件的namespace得是dao接口的全限定类名，你的sql标签的id必须是跟dao接口内的方法名一致；
+因为有这个机制在，所以在mybatis中，dao也可以叫mapper
+你在java下创建的包名叫mapper，创建的接口叫xxxMapper
+以后只需要写mapper.xml文件和mapper接口，接口内的方法都可以动态生成，不用写实现类
+小技巧：
+1，#{}和${}的区别：
+       #{}：底层使用preparedStatement，
+       特点：先进行sql语句的编译，然后给sql语句的占位符问好？传值。可以避免sql注入的风险
+       ${}：底层使用Statement
+       特点：先进行sql语句的拼接，然后再sql语句进行编译，存在sql注入的风险，有使用sql语句字符串的拼接就使用这个
+优先使用#{}，避免sql注入的风险
+如果你想往sql语句中传入sql语句的关键字，或者想先机型sql语句的拼接，再编译，就是使用${}
+例如，你想传入一个asc或者desc来控制输出结果的降序还是升序，这个时候就要使用${}来进行传值，因为#{}传值会变成'asc'
+2，向sql语句当中拼接表名，就需要使用${}，例如日志文件，一天一个表，你需要查询某一天的日志，这个时候要拼接表名进行查询
+例如:select * from t_log_${date}//，这里使用#{}的话会自带单引号，就会变成t_log_'2020-11-11'，查询不到
+在现实业务当中，可能会存在分表存储数据的情况，因为一张表存的话，数据量太大，查询效率比较低
+可以将这些数据有规律的分表存储，这样在查询的时候效率就比较高，因为 扫描调度数据量变少了
+3，批量删除：一次删除多条记录
+批量删除sql语句有两种写法：
+1，delete from t_car where id=1 or id=2 or id=3
+2，delete from t_car where id in(1,2,3)
+例如：delete from t_car where id in(${ids})//如果这里使用#{}的话，会传入'155,111,11'，会自带单引号
+4，模糊查询：like
+第一种方案：例如：select * from t_car where brand like '%${brand}%'//如果这里使用#{}的话，里面的占位符就不会被识别，系统就会认为里面就是一个普通的字符串，所以需要拼接字符串
+第二种方案：select * from t_ car where brand like concat('%',#{brand},'%')//concat是自带的字符串拼接函数，这里就可以使用#{}，如果要使用${}，则需要在其外面两边添加'
+第三种方案(这种最常用)：select * from t_car where brand llike "%"#{brand}"%"//这种方案是让系统识别出占位符
+mybatis中的别名机制：
+在mybatis-config.xml文件中<configuration>标签里的<typeAliases>标签
+<typeAliases>
+     <typeAAlias type="crudtest.bean.Car" alias="car">//type:指定给哪个类型起别名(全限定类名)，alias指定别名
+</typeAliases>
+这样起了别名后，我们可以在mapper.xml里例如select标签里resultType需要使用的全限定类名就可以改为别名
+注意：别名不区分大小写，namespace不能取别名，只能写接口的全限定类名
+alias属性是可以省略的，有默认的别名，别名就是类的简名，比如：crudtest.bean.Car的别名就是Car/car/,每个字符都不区分大小写
+注意：下面这种起别名最常用，我们只需要指定包名内的全起别名即可,这是为了防止一个包内全部都要取别名，类太多，太麻烦
+例如：
+<typeAliases>
+   <package name="crudtest.bean"/>//将这个包下的所有类全部自动起别名，别名就是简类名，不区分大小写
+</typeAliases>
+
+mybatis.config.xml文件中的mapper标签：
+mapper标签的属性可以有三个：
+<mapper resource=""/>//这个方式是从类的根路径下开始查找资源，配置文件需要放到类路径当中
+<mapper url=""/>//这个方式是以绝对路径的方式开始查找资源，不要求配置文件放在根路径中，哪里都行，这种方式使用很少
+<mapper class=""/>//这个方式是写入mapper接口的全限定接口名
+假如你class指定的是：crudtest.mapper.Carmapper,那么mybatis框架会自动取crudtest/mapper目录下查找Carmapper.xml文件
+注意：如果你采用class方式，你必须得保证Carmapper.xml文件和Carmapper接口必须在同一个目录下
+要想使用class方式，必须在resource目录下新建包，并且包名要和接口那边的一致，包括目录结构，
+例如你的接口在crudtest这个包下的mapper包下，那么应该在resources包下新建多级目录，
+(*****)如果你采用crudtest.mapper这个名字来建立文件夹的话，是一级目录，因为系统会认为你的名字中自带点，我们要使用crudtest/mapper，这样就是crudtest目录下还有一个mapper目录，我们将mapper.xml文件都放到这个目录下
+注意：这样看起来好像不是在一个包下，只是包名字结构一样，但是你编译后系统会将接口和mapper.xml文件都放在这一个包下，也就是将这2个名字结构相同的包下的文件联合在一起
+接口名要和mapper文件名字一样
+(最常用)
+有class方式的思想，以后在<mappers>标签内添加配置文件，我们只需要里面<package name="crudtest.mapper">即可，也就是将mapper目录下的全部mapper接口和mapper.xml文件都配置到myabtis中
+但是需要遵循class方式的配置条件，在resources目录下新建一个和mapper目录一样的名字结构的目录，将xml文件都放入其中，这样让接口和xml文件在编译后处于同一个文件夹中
+使用自动递增的主键：
+在mapper.xml文件的insert标签中，有一个userGenerateKeys属性和keyProperty属性
+userGenerateKeys是填入boolean类型的值，当其为true时，表示使用生成的主键
+keyProperty填入你需要赋值的对象的字段，指定主键值赋值给对象的哪个属性
+例如：
+<insert id = "insertUseGeneratekey",userGeneratedKeys="true" keyProperty="id">
+    insert into t_car values(null,#{carNum},#{brand},#{guidePrice},#{produceTime},#{carType});
+</insert>
+将你自增的id属性赋给你传入的car对象，我们输出car对象的时候就会发现它的id是自动生成的
+MyBatis参数处理：
+在mapper.xml文件中，sql语句的标签还有一个parameterType属性，用于指定你java程序传过来的数据的类型
+例如：
+<select id="selectByid" resultType="student" parameterType="java.lang.Long">
+        select * from t_student where id=#{id}
+    </select>
+指定你id传过来只能是Long类型，因为我们设置的bean类里的id就是Long类型
+parameterType属性的作用：告诉mybatis框架，这个方法的参数类型是什么类型
+但是mybatis框架自身带有类型自动推断机制，所以大部分情况下parameterType属性都是可以省略不写的
+#{}里也可以告诉mybatis，你传的数据类型是什么
+例如:#{name, javaType=String,jdbcType=VARCHAR}//告诉mybatis，name这个值在java中是String类型，在数据库表中是varchar类型的
+如果是接口中有多个参数要传给mapper.xml文件的话，mybatis底层会自动创建一个map集合，并且map集合是以这种方式存储参数的：
+map.put("arg0",name);//这里的arg也可以改为param，也就是param1，mybatis底层也能识别，要注意的是，param是从下标1开始的，arg是从下标0开始的	
+map.put("arg1",sex);
+map.put("argi",birth);
+例如：List<student> selectBYnameAndSex(String name,Character sex);//通过name和sex同时查询数据
+那么mapper.xml文件中就应该：
+ <select id="selectBYnameAndSex" resultType="student">
+     select * from t_student where name=#{arg0} and sex=#{arg1}//如果有三个参数就多一个arg2
+    </select>
+//怎么判断哪个是arg0，arg1，看接口里的参数列表，哪个在前面哪个就是arg0，看参数列表将其放入mybatis底层的map集合，接口中哪个参数放前面，哪个参数就先被put，也就是arg0的value
+上述多参数的情况下，我们可以使用@param注解(最常用)
+List<student> selectBYnameAndSex(@Param("name")String name,@Param("sex")Character sex);//param注解默认是有一个value属性的，可以省略
+使用param注解 可以告诉mybatis，底层封装map集合的key用什么，这样我们的mapper.xml文件就可以写我们指定的key了，可读性增强
+也就是使用我们指定的key填写mapper.xml文件
+<select id="selectBYnameAndSex" resultType="student">
+        select * from t_student where name=#{name} and sex=#{sex}
+    </select>
+使用了@param注解之后，arg0和arg1失效了，但是param1和param2还可以用，但是我们一般都用自己指定的key
+sqlsession对象的getMapper方法其实是获取了这个接口的代理对象，然后代理对象调用代理方法完成mybatis的增删改查
+如果你对一个返回的记录条数不是一条是多条，而你用一个对象进行赋值，那么会出现tomanyresultsexception异常、
+ 当你查询完返回的记录条数多于一条的时候，可以使用list集合进行接收
+如果你查询的结果没有一个合适的bean类接收，那我们可以用一个Map集合进行接收
+返回值为单个的map集合接收：
+例如：Map<String,Object> selectByid(Long id);
+  在mapper.xml文件中我们应该：
+<select id = "selectall" resultType="map">
+   select * from t_car where id=#{id}
+</select>	
+//这里resultType为map，将查询结果以一个map集合的形式返回，key就是字段名，value就是字段名
+返回值为多个的map集合接收：
+例如：List<Map<String,Object>> selectuseMapper();//将多个map集合封装到list集合中
+mapper文件就是：
+<select id="selectuseMapper" resultType="Map">//返回类型还是map，不是list，主要看我们输出的时候的类型，所以是map
+     select * from t_student
+</select>
+上面的List<Map>查找不太方便
+我们可以采用Map<String,Map>//这种的查找更方便
+我们需要在mapper接口上的该方法加上一个MapKey注解，将主键传入作为一个整个大Map的key，value就是小map(每条记录)
+例如： 
+@MapKey("id")//将查询结果的id值作为整个大Map集合的key
+Map<Long,Map<String,Object>> selectBYBigMap();
+使用resultMap属性进行结果映射(*****)
+当我们数据库表和javabean类的字段名不同时，我们有三种方式进行解决输出
+1，取别名//太麻烦
+2，使用resultMap属性进行结果映射(*****)
+在mapper.xml文件中，我们要专门定义一个结果映射，在这个结果映射当中指定数据库表的字段名和java类的属性名的对应关系
+格式：
+<resultMap id="" type="">//type属性用来指定bean类的类型，id属性指定resultMap的唯一标签，这个id将来要在select标签中使用
+  <id property="" column=""/>//如果数据库表中有主键，建议这里配置一个id标签，把主键配置到这，提高mybatis效率
+<result property="" column=""/>//property属性填写bean类的的属性名，column填写数据库表的字段名	
+ </resultMap>//如果column和property是一样的可以不配
+<select id="selectBYresultMap" resultMap="">//使用resultMap属性来接收上面的结果映射，填入resultMap标签的id
+        
+</select>
+例如:
+ <resultMap id="carmap" type="car">
+        <id property="id" column="id"/>
+        <result property="carNum" column="car_Num"/>
+        <result property="brand" column="brand"/>
+        <result property="guidePrice" column="guide_price"/>
+        <result property="produceTime" column="produce_time"/>
+        <result property="carType" column="car_type"/>
+    </resultMap>
+<select id="selectall" resultMap="carmap">
+        select id,car_num,brand,guide_price,produce_Time,car_Type from t_car
+    </select>
+3，开启驼峰命名自动映射(少用,开发种完全遵循规范很难)：
+前提是，属性名遵循java的命名规范，数据库表的列名遵循sql的命名规范
+java命名规范：首字母小写，后面每个单词首字母大写，遵循托福命名方式
+sql命名规范全部小写，单词站之间采用下划线进行分割
+比如以下的对应关系：
+carNum  -------  car_num
+carType  -------  car_type
+开启：在mybatis-config.xml文件中配置：
+<settings>
+      <setting name="mapUnderscoreToCamelCase" value="true"/>
+</settings>
+
+获取总记录条数：
+mapper接口中：Long selectcount();
+mapper.xml文件中：
+<select id ="selectcount" resultType ="long">
+    select count(*) from t_car
+</select>
+
+动态sql
+1，if标签//多条件查询
+if标签在mapper.xml文件的sql语句标签内使用
+例如：
+<select id="carselect" resultType="car">
+   select * from t_car where 
+  <if test="">
+//if标签中test属性是必须的，test属性是boolean类型，如果是true，if标签内的内容就会拼接，反之则不会拼接
+//test属性中当接口使用了@param注解，那么test中要出现的是@param注解指定的参数名，@param("brand"),那么这里只能使用brand
+//假如没有使用@param注解，那么test中要出现的是param1，param2，或者arg0，arg1
+//当你使用bean，那么test中要出现的是bean的属性名
+//在mybatis的动态sql当中，不能使用&&，只能使用and      	
+  </if>
+</select>
+例如：
+carmapper接口： List<Car> selectdynamic(@Param("brand") String brand,@Param("carType") String carType);
+carmapper文件中
+<select id="selectdynamic" resultMap="carmap">
+    select * from t_car where 1=1
+    <if test="brand !=null and brand !=''">//判断你方法上有没有使用该条件
+       and brand like "%"#{brand}"%"//注意：模糊查询需要在#{}两边加上"%"，不然查询不出来
+    </if>
+    <if test="carType">
+        and car_type = #{carType}
+    </if>
+  </select>
+测试程序：List<Car> selectdynamic = mapper.selectdynamic("丁海","真");//对"丁海进行模糊查询","真"进行等值运算
+2，where标签//让where子句更加动态智能，当所有条件为空时，where标签保证不会生成where子句，自动取出某些条件前面多余的and或or
+where标签是专门负责where子句动态生成的，像上面的if标签等语句，都可以写在where标签内：
+例如：
+select * from t_car
+<where>
+<if test="brand !=null and brand !=''">
+       and brand like "%"#{brand}"%"
+    </if>
+    <if test="carType">
+        and car_type = #{carType}
+    </if>
+</where>
+//使用where标签后，如果条件都没有，就不会生成where子句，像上面的就是直接select* from t_car
+如果有一个条件成立，则会自动生成一个where，多个条件成立，也只生成一个where
+3，trim标签
+ <trim prefix="" prefixOverrides="" suffix="" suffixOverrides=""></trim>
+//trim标签里边有四个属性：
+prefix：加前缀
+prefixOberrodes：删除前缀
+suffx：加后缀
+suffixOverrides：删除后缀
+例如：
+ select * from t_car
+        <trim prefix="where" suffixOverrides="and|or">//在trim标签前面加个where，把trim标签中所有内容的后缀and或or去掉
+            <if test="brand !=null and brand !=''">
+                brand like "%"#{brand}"%" and 
+            </if>
+            <if test="carType !=null and carType !=''">
+                car_type like "%"#{carType}"%"
+            </if>
+        </trim>
+注意：如果全部条件都为空，可能不加前缀，系统会自动不加，为了sql语句的语法规范
+4，set标签//主要用在update语句当中，用来生成set关键子，同时去掉最后多余的“,”比如我们只更新不为空的字段，如果提交的数据是空或者“”，那么这个字段我们将不更新
+例如： update t_car
+        <set>
+            <if test="carNum!=null and carNum!=''">car_num=#{carNum},</if>
+            <if test="brand!=null and brand!=''">brand=#{brand},</if>
+            <if test="guidePrice!=null and guidePrice!=''">guide_price=#{guidePrice},</if>
+            <if test="produceTime!=null and produceTime!=''">produce_time=#{produceTime},</if>
+            <if test="carType!=null and carType!=''">car_type=#{carType}</if>
+        </set>
+        where id=#{id}
+如果你只想修改某一个数据的某一个值，那么将传入的对象的该值修改为你想要的，把其他全写为null，这样就只会set修改你想要的，因为if标签帮你筛选了
+5，choose when otherwise//这三个标签是放在一起使用的，等同于多个if else
+例如：接口： List<Car> selectBYchoose(@Param("brand") String brand,@Param("carType") String carType);
+mapper.xml文件中使用：
+select* from t_car
+        <where>
+            <choose>
+                <when test="brand!=null and brand!=''">
+                   brand like "%"#{brand}"%"
+                </when>
+                <when test="carType!=null and carType!=''">
+                   car_type = #{carType}
+                </when>
+                <otherwise>
+                   car_num=1004
+                </otherwise>
+            </choose>
+        </where>
+注意：使用choose when otherwise ，只有一个条件满足就会不判断其他的直接输出，
+如果多个条件都满足，那么只会添加最前面的条件，如果所有条件都不满足，就跳入otherwise标签内
+6，foreach标签//循环数组或集合，动态生成sql
+例如：
+delete from t_car where id in(
+        <foreach collection="" item="" separator="">
+       
+        </foreach>
+        )
+//foreach标签的属性有三个：
+//1，collection：指定数组或集合
+//2，item：代表数组或集合中的元素,可以随便命名，最好见名知意
+//3，separator：循环之间的分割符
+//4，open：在foreach标签前面以什么开始
+//5，close：在foreach标签循环结束后最好添加什么
+批量删除例子：
+接口：int deleteBYforeach(@Param("ids") Long[] ids);//传入输入的一个数组，也可以传入集合，记得使用param注解
+mapper.xml文件中：
+第一种方式：
+delete from t_car where id in(
+        delete from t_car where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")"> //将接口中的ids数组进行遍历，采用“，”进行分割，以(开始，以）结束
+         #{id}
+        </foreach>
+上面这个语句其实就是delete from t_car where id in(1l,2l);//1l和2l是通过对数组进行遍历产生的
+第二种方式：
+ delete from t_car where
+        <foreach collection="ids" item="id" separator="or">
+            id=#{id}
+        </foreach>
+批量插入例子：
+接口：int insertBatch(@Param("cars")List<Car> cars);
+mapper.xml文件：
+insert into t_car values
+        <foreach collection="cars" item="car" separator=",">
+            (null,#{car.carNum},#{car.brand},#{car.guidePrice},#{car.produceTime},#{car.carType})//这个要采用元素.的方式来指定属性
+        </foreach>
+7，sql标签和include标签
+//sql标签用来声明sql片段的
+//include标签用来将声明的sql片段包含到某个sql语句当中
+作用：代码复用，易维护
+例如：<sql id="replacenameCar">
+        id,
+        car_Num as carNum,
+        brand,
+        guide_price as guideprice,
+        produce_Time as produceTime,
+        car_Type as carType
+    </sql>
+我们将这一段重命名的sql语句放入一个sql标签内，写上id，当我们需要使用这段代码的时候，使用include标签，将这个sql语句的id传入，就可以相当于代替这段sql语句，起到代码复用效果
+例如：
+ <select id="selectByid" resultType="crudtest.bean.Car">
+        select <include refid="replacenameCar"></include>
+        from t_car where id=#{id}
+    </select> 
+mybatis的高级映射与延迟加载//多表查询之类的
+分辨主表和副表：谁在前，谁是主表
+例如多对一，多在前，多是主表
+一对多，一在前，一是主表
+谁是主表，就在两表连接的时候被作为主要的对象被映射到jvm中
+所以我们可以在主表的bean类上写入副表的对象，
+例如：t_stu是主表，t_clazz是副表，我们要在student类中加入private Clazz clazz对象 ，这样就可以通过主表去获取副表的对象
+多对一的情况：
+第一种方式：一条sql语句，级联属性映射：
+接口：在主表mapper文件编写: Student selectByid(Integer id);
+//通过resultMap进行副表的映射，再在select标签中写入两表连接的sql语句
+<resultMap id="studentresultmap" type="student">
+        <id property="sid" column="sid"/>
+        <result property="sname" column="sname"/>
+        <result property="clazz.cid" column="c.cid"/>
+        <result property="clazz.cname" column="c.cname"/>
+    </resultMap>
+    <select id="selectByid" resultMap="studentresultmap">
+        select 
+            s.sid,s.sname,c.cid,c.cname
+        from t_stu s join t_clazz c on s.cid = c.cid
+        where s.sid = #{id}
+    </select>
+第二种方式：一条sql语句，采用association标签
+association标签主要是编写副表的关系，
+association中的property属性提供要映射的bean类的属性名
+JavaType属性用来指定要映射的java类型
+使用该方法sql语句与第一种一模一样，但是resultMap不一样
+<resultMap id="studentResultmapassociation" type="Student">
+        <id property="sid" column="sid"/>
+        <result property="sname" column="sname"/>
+        <association property="clazz" javaType="Clazz">
+            <id property="cid" column="cid"/>
+            <result property="cname" column="cname"/>
+        </association>
+    </resultMap>
+第三种方式：两条sql语句，分布查询//这种方式最常用：优点1是可复用，优点2是支持懒加载(延迟加载)
+这种方式先查询一条sql语句，将查询出来的副表的那条数据传给另一条sql语句，注意：副表的接口方法和mapper.xml文件也要编写查询语句
+例如：
+主表：
+接口：Student selectBYstustep(Integer sid);
+mapper.xml：
+<resultMap id="selectstep" type="student">
+        <id property="sid" column="sid"/>
+        <id property="sname" column="sname"/>
+        <association property="clazz"//副表类型定义的哪个变量名
+                     select="seniormapper.mapper.clazzMapper.selectBYcid"//这里编写副表接口方法的全限定类名
+                     column="cid"/>//所需传入副表查询的数据
+    </resultMap>
+    <select id="selectBYstustep" resultMap="selectstep">
+        select sid,sname,cid from t_stu where sid=#{sid}
+    </select>
+副表那边：
+接口： Clazz selectBYcid(Integer cid);
+mapper.xml：
+<select id="selectBYcid" resultType="Clazz">
+        select cid,cname from t_clazz where cid =#{cid}
+    </select>
+延迟加载(懒加载)：用到的时候再执行查询语句，不用的时候不查询
+作用：提高性能，尽可能的不查，或者说尽可能的少查，来提高效率
+在mybatis开启延迟加载：association标签中添加fetchType="lazy"，
+默认情况下没有开启延迟加载，这种在association标签中配置fetchType=“lazy”，是局部的，只对当前的association关联的sql语句起作用
+懒加载就是在你使用到副表数据的时候在查询，起到尽量减少查询的效果
+例如上述的情况下，我们只输出sname，不输出其他的，没开启懒加载就会默认查询2条sql语句，开启了就只会查询一条sql语句
+如果想启用全局的懒加载机制，需要在核心配置文件中配置：
+<settings>
+    <setting name="lazyLoadingEnabled" value="true">//默认是false，需要配置true
+</settings>
+注意：在实际的开发中，大部分都是需要使用延迟加载的，建议开启全局的延迟加载机制，
+如果有那个语句有特殊需求，不要延迟加载的话，我们需要在association标签内的fetchTyp标签赋予eager，将其局部变为不支持延迟加载
+
+一对多的情况：
+一对多：一在前，一是主表，多是副表
+例如t_clazz是一，t_stu是多
+由于多的是副表，所以我们要在主表的bean类哪里定义一个符合副表的数据类型
+我们这里采用List集合的方式存储副表的元素
+private List<student> student stus;
+第一种方式：collection
+例子：
+接口：Clazz selectBYcollection(Integer cid);
+mapper.xml文件：
+ <resultMap id="collectionMap" type="clazz">
+        <id property="cid" column="cid"/>
+        <result property="cname" column="cname"/>
+        <collection property="stus" ofType="student">//collection相等于association，property填写主表中定义的属性名，ofType填写副表的数据类型
+            <id property="sid" column="sid"/>
+            <result property="sname" column="sname"/>
+        </collection>
+    </resultMap>
+    <select id="selectBYcollection" resultMap="collectionMap">
+        select c.cid,c.cname,s.sid,s.sname from t_clazz c left join t_stu s
+        on s.cid=c.cid where c.cid=#{cid}
+    </select>
+测试程序运行后，结果为：Clazz{cid=1000, cname='高三一班', stus=[student{sid=1, sname='张三', clazz=null}, student{sid=2, sname='李四', clazz=null}, student{sid=3, sname='王五', clazz=null}]}
+第二种方式：分表查询//同样也是这个最常用，有懒加载提高效率
+clazz接口： Clazz selectBYid(Integer cid);
+clazzmapper.xml文件：
+<resultMap id="selectByidstep" type="clazz">
+        <id property="cid" column="cid"/>
+        <result property="cname" column="cname"/>
+        <association property="stus" select="seniormapper.mapper.studentMapper.selectBYcid" column="cid">
+            <id property="sid" column="sid"/>
+            <result property="sname" column="sname"/>
+        </association>
+    </resultMap>
+    <select id="selectBYid" resultMap="selectByidstep">
+        select cid,cname from t_clazz where cid=#{cid}
+    </select>
+student接口：Student selectBYcid(Integer cid);
+studentmapper.xml文件：
+ <select id="selectBYcid" resultType="student">
+        select sid,sname from t_stu where cid=#{cid}
+    </select>
+mybatis中的缓存
+mybatis中有一个缓存机制：执行select语句的时候，将查询结果放到缓存(内存)当中，如果下一次还是执行完全相同的select语句，
+直接从缓存中拿数据，不再查数据库了，不用再去硬盘上找数据了，目的是为了提高执行效率
+缓存机制作用：使用减少io的方式来提高效率//io:读文件和写文件
+缓存通常是程序开发中优化的重要手段，
+有很多缓存机制：1，字符串常量池 2，整数型常量池 3，线程池 4，连接池
+缓存：提前把数据放到缓存中，下一次用的时候，直接从缓存中拿，减少io，不在执行繁琐的查找算法，效率高，缓存对应的英语单词：cache
+mybatis缓存包括：
+1，一级缓存：将查询到的数据存储到sqlsession中
+2，二级缓存：将查询到的数据存储到sqlsessionfactory中
+3，或者集成其他第三方的缓存比如ehcache(java开发，这个用的多点)，memcache(c语言开发)等
+缓存机制只针对select语句有作用
+一级缓存//默认开启，不需要做任何配置
+原理：只要使用同一个sqlsession对象执行同一条sql语句，就会走缓存
+什么时候一级缓存失效：
+第一次select和第二次select之间你做了以下两件事中的任意一件都会让一级缓存清空：
+1，执行了sqlsession的clearCache方法//手动清空缓存
+2，执行了insert或delete或update语句，不管你是操作那张表的，都会清空一级缓存
+
+二级缓存
+使用条件
+1，默认情况下也是开启的，只是需要在对应的sqlmapper.xml文件中添加<cache/>用来表示我使用二级缓存
+2，使用二级缓存的实体类必须是可序列化的，也就是必须实现java.io.Serializable接口
+3，sqlsession对象关闭或提交之后，一级缓存中的数据才会倍写入到二级缓存当中，此时二级缓存才可用
+二级缓存的失效：只要两次查询之间出现了增删改查操作，二级缓存就会失效
+
+集成encache//用来代替二级缓存，一级缓存是无法代替的
+
+mybatis的逆向工程：根据数据库表逆向生成java的bean类，sqlmapper.xm文件，以及mapper接口类等
+步骤：
+1，在pom.xml文件中配置逆向工程的插件
+2，写一个名叫generatorConfig.xml文件，该文件名字是必须的，同时该文件必须放在类的根路径下
+3，在idea右侧的maven接口那找插件点击generate，就会生成
+在逆向工程生成的东西中，有一个example这样的词，是查询条件的意思
+例如：selectByExample(null)，就是没条件的查询，是将全部都查询出来
+要按照条件查的话，要通过xxxExample对象来封装查询条件，我们这里是CarExample
+例如：CarExample carexample = new CarExample();
+carexample.createCriteria();//这个方法是创建查询条件的，再往下.就可以选中条件
+例如：carExample.createCriteria().andBrandEqualTo("");//查询什么与Brand相等的数据
+这种的被叫做QBC ⻛格：Query By Criteria ⼀种查询⽅式，⽐较⾯向对象，看不到sql语句。
+
+mybatis使用PageHelper
+分页查询：
+前端会传入pagesize和pagenum
+mysql中的limit用分页来表示的话：limit startIndex,pagesize
+而startIndex=(pagenum-1)*pagesize
+实际开发中：前端传来pagenum和pagesize，我们通过这些数据进行分页查询
+在开发中，获取数据不难，难的是获取分页相关的数据比较难，可以借助mybatis的pagehelper插件
+要使用pagehelper插件分页
+1，要引入pagehelper依赖
+2，在核心配置文件中typeAliases标签底下配置pagehelper插件的拦截器
+3，在程序中编写pagehelper代码，使用PageHelper的方法对输出进行约束
+例如：
+接口： List<Car> selectall();
+mapper.xml文件：
+<select id="selectall" resultMap="carmap">
+        select id,car_num,brand,guide_price,produce_Time,car_Type from t_car
+    </select>
+程序：
+  SqlSession sqlSession = sqlsessionutil.opensession();
+        Carmapper mapper = sqlSession.getMapper(Carmapper.class);
+        int pageNum =2;
+        int pageSize =3;
+        PageHelper.startPage(pageNum,pageSize);//调用PageHelper的startPage方法，传入页码和数据量，对下面的输出进行limit
+        List<Car> cars = mapper.selectall();
+        for (Car car : cars) {
+            System.out.println(car);
+        }
+PageInfo<Car> pageinfo = new PageInfo(cars,5);//我们可以获取分页信息对象，对当前输出的数据进行导航
+System.out.println(pageinfo);
+ 
+pageinfo对象有很多信息，例如，上一页的页数，下一页的页码这样子
+PageInfo{pageNum=2, pageSize=3, size=1, startRow=4, endRow=4, total=4, pages=2, 
+list=Page{count=true, pageNum=2, pageSize=3, startRow=3, endRow=6, total=4, pages=2, 
+reasonable=false, pageSizeZero=false}[Car{id=45, carNum='8654', brand='刘', guidePrice=3.0,
+ produceTime='2000-10-11', carType='双马尾'}], prePage=1, nextPage=0, isFirstPage=false, isLastPage=true, 
+hasPreviousPage=true, hasNextPage=false, navigatePages=5, navigateFirstPage=1, navigateLastPage=2, navigatepageNums=[1, 2]}
+
+mybatis的注解式开发//根本不用，了解一下
+就写接口和，不需要mapper.xml文件，注解式开发只能单表操作，在实际开发中不可能只有单表操作，所以压根没用
+例如：
+@Insert("insert into t_car values(null,#{carNum},#{brand},#{guidePrice},#{produceTime},#{carType})")
+    int insert(Car car);
+程序就跟之前一样	

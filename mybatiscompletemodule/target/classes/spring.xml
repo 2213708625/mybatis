@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <bean id="CarBean" class="likethis.bean.Car">
+        <property name="id" value="50"/>
+        <property name="carNum" value="1022"/>
+        <property name="brand" value="刘嘉琪"/>
+        <property name="guidePrice" value="55.00"/>
+        <!--<property name="produceTime" value="2020-11-22"/>-->
+        <property name="carType" value="我爱你"/>
+    </bean>
+</beans>

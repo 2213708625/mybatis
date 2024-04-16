@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="dynamicsql.mapper.CarMapper">
+    <resultMap id="carmap" type="car">
+        <id property="id" column="id"/>
+        <result property="carNum" column="car_Num"/>
+        <result property="brand" column="brand"/>
+        <result property="guidePrice" column="guide_price"/>
+        <result property="produceTime" column="produce_time"/>
+        <result property="carType" column="car_type"/>
+    </resultMap>
+  <select id="selectdynamic" resultMap="carmap">
+    select * from t_car where 1=1
+    <if test="brand !=null and brand !=''">
+       and brand like "%"#{brand}"%"
+    </if>
+    <if test="carType !=null and carType !=''">
+        and car_type like "%"#{carType}"%"
+    </if>
+  </select>
+    <select id="selectdynamicBywhere" resultMap="carmap">
+        select * from t_car
+        <where>
+            <if test="brand !=null and brand !=''">
+                and brand like "%"#{brand}"%"
+            </if>
+            <if test="carType !=null and carType !=''">
+                and car_type like "%"#{carType}"%"
+            </if>
+        </where>
+    </select>
+    <select id="selectdynamicBytrim" resultMap="carmap">
+        select * from t_car
+        <trim prefix="where" suffixOverrides="and|or">
+            <if test="brand !=null and brand !=''">
+                brand like "%"#{brand}"%" and
+            </if>
+            <if test="carType !=null and carType !=''">
+                car_type like "%"#{carType}"%"
+            </if>
+        </trim>
+    </select>
+    <update id="updateByset">
+        update t_car
+        <set>
+            <if test="carNum!=null and carNum!=''">car_num=#{carNum},</if>
+            <if test="brand!=null and brand!=''">brand=#{brand},</if>
+            <if test="guidePrice!=null and guidePrice!=''">guide_price=#{guidePrice},</if>
+            <if test="produceTime!=null and produceTime!=''">produce_time=#{produceTime},</if>
+            <if test="carType!=null and carType!=''">car_type=#{carType}</if>
+        </set>
+        where id=#{id}
+    </update>
+    <select id="selectBYchoose" resultMap="carmap">
+        select* from t_car
+        <where>
+            <choose>
+                <when test="brand!=null and brand!=''">
+                   brand like "%"#{brand}"%"
+                </when>
+                <when test="carType!=null and carType!=''">
+                   car_type = #{carType}
+                </when>
+                <otherwise>
+                   car_num=1004
+                </otherwise>
+            </choose>
+        </where>
+    </select>
+    <delete id="deleteBYforeach">
+        delete from t_car where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+         #{id}
+        </foreach>
+    </delete>
+    <insert id="insertBatch">
+        insert into t_car values
+        <foreach collection="cars" item="car" separator=",">
+            (null,#{car.carNum},#{car.brand},#{car.guidePrice},#{car.produceTime},#{car.carType})
+        </foreach>
+    </insert>
+    <delete id="deleteBYids">
+        delete from t_car where
+            <foreach collection="ids" item="id" separator="or">
+                id=#{id}
+            </foreach>
+    </delete>
+</mapper>
